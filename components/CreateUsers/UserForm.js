@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -11,77 +11,52 @@ import {
   Paper,
   Grid,
 } from "@mui/material";
-import {
-  UploadFile,
-  AddPhotoAlternate,
-  CancelOutlined,
-} from "@mui/icons-material";
+import { CancelOutlined } from "@mui/icons-material";
 import { custom_styling } from "@/theme/mui-theme";
 import { CUSTOM_COLORS } from "@/theme/colors";
-import ImageDetailsModal from "@/components/core/ImageDetailsModal";
 
 const UserForm = ({
   userData = {},
   onSubmit,
   loading = false,
-  roles = ['vendor', 'user'],
+  roles = ["vendor", "user"],
   isUpdate = false,
 }) => {
-  const [file, setFile] = useState(null);
   const [name, setName] = useState(userData.name || "");
   const [email, setEmail] = useState(userData.email || "");
   const [phone, setPhone] = useState(userData.phone || "");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState(userData.role || "");
-  const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
-    if (userData.image) {
-      setFile({
-        url: userData.image,
-        name: userData.image,
-      });
+    if (userData && Object.keys(userData).length > 0) {
+      setName(userData.name || "");
+      setEmail(userData.email || "");
+      setPhone(userData.phone || "");
+      setRole(userData.role || "");
     }
   }, [userData]);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile({
-        file: selectedFile,
-        url: URL.createObjectURL(selectedFile),
-        name: selectedFile.name,
-        size: selectedFile.size,
-        type: selectedFile.type,
-      });
-    }
-  };
-
-  const handleRemoveFile = () => {
-    setFile(null);
-  };
-
-  const handleOpenModal = () => {
-    setOpenModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file || !name || !email || !phone || !role) {
-      alert("Please fill all the fields!");
+    if (!name || !email || !phone || (!isUpdate && !password) || !role) {
+      alert("Please fill all required fields!");
       return;
     }
 
-    const userData = {
-      name,
-      email,
-      phone,
-      role,
-      image: file,
-    };
+    const phonePattern = /^[0-9]{10}$/;
+    if (!phonePattern.test(phone)) {
+      alert("Phone number must be exactly 10 digits!");
+      return;
+    }
+
+    if (!isUpdate && password.length < 8) {
+      alert("Password must be at least 8 characters!");
+      return;
+    }
+
+    const userData = { name, email, phone, role };
+    if (!isUpdate) userData.password = password;
 
     await onSubmit(userData);
   };
@@ -142,10 +117,14 @@ const UserForm = ({
                 label="Phone Number"
                 variant="outlined"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 10); // Only digits, max 10
+                  setPhone(val);
+                }}
                 fullWidth
                 required
                 sx={custom_styling.secondaryTextField}
+                helperText="Phone number must be 10 digits"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -165,64 +144,35 @@ const UserForm = ({
             </Grid>
           </Grid>
 
-          <Button
-            variant="contained"
-            component="label"
-            startIcon={<AddPhotoAlternate />}
-            sx={custom_styling.secondaryButton}
-          >
-            {file ? "Change Image" : "Select Image"}
-            <input
-              type="file"
-              hidden
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-          </Button>
-
-          {file && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                marginTop: 2,
-              }}
-            >
-              <img
-                src={file.url}
-                alt="Selected Preview"
-                style={{
-                  width: "100%",
-                  maxWidth: "300px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                }}
-                onClick={handleOpenModal}
-              />
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleRemoveFile}
-                sx={{ padding: "5px 10px", marginTop: 2 }}
-              >
-                Remove
-              </Button>
-            </Box>
-          )}
+          <TextField
+            label="Password"
+            variant="outlined"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            required={!isUpdate}
+            sx={custom_styling.secondaryTextField}
+            helperText="At least 8 characters (1 letter & 1 number)"
+          />
 
           <Button
             type="submit"
             variant="contained"
             color="primary"
-            startIcon={<UploadFile />}
             disabled={loading}
             sx={custom_styling.primaryButton}
             className="-mb-4"
           >
-            {loading ? <CircularProgress size={24} /> : isUpdate ? "Update User" : "Create User"}
+            {loading ? (
+              <CircularProgress size={24} />
+            ) : isUpdate ? (
+              "Update User"
+            ) : (
+              "Create User"
+            )}
           </Button>
+
           <Button
             type="button"
             variant="contained"
@@ -234,12 +184,6 @@ const UserForm = ({
             Cancel
           </Button>
         </Box>
-
-        <ImageDetailsModal
-          open={openModal}
-          handleClose={handleCloseModal}
-          file={file}
-        />
       </Paper>
     </div>
   );

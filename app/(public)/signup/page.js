@@ -1,52 +1,58 @@
 "use client";
 
 import { useState } from "react";
-import AuthLeftSection from "@/components/core/AuthLeftSection"; 
+import AuthLeftSection from "@/components/core/AuthLeftSection";
 import Link from "next/link";
+import { register } from "@/api/services/authService";
+import toast from "react-hot-toast";
 
 const SignupPage = () => {
   const [data, setData] = useState({ success: null, error: null });
   const [isPending, setIsPending] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
 
-  async function registerUser(formData, role) {
-    try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-    } catch (error) {
-      console.error("Error registering user:", error);
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsPending(true);
-    setData({ success: null, error: null });
+    try {
+      setIsPending(true);
+      setData({ success: null, error: null });
 
-    const formData = new FormData(e.target);
-    formData.append("role", selectedRole); 
+      const formData = new FormData(e.target);
+      formData.append("role", selectedRole);
 
-    const response = await registerUser(formData, selectedRole); 
+      const response = await register(formData, selectedRole);
 
-    setData(response);
-    setIsPending(false);
+      if(response.success){
+        toast.success(response.message);
+        e.target.reset();
+      }
+      
+      setData(response);
+      setIsPending(false);
+    } catch (error) {
+      console.log("Error: ", error);
+      toast.error(
+        error.response.data.message ||
+          "Something went wrong, please try again later."
+      );
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
     <div className="flex h-screen">
       <AuthLeftSection />
-      
+
       <div className="lg:w-1/2 w-full flex items-center justify-center">
         <div className="w-full max-w-md p-8 bg-white shadow-md space-y-4">
           <div className="font-medium text-2xl">
             <span className="text-secondary">Event</span>
             <span className="text-primary">Planner</span>
           </div>
-          <h2 className="text-xl font-medium mb-6 text-secondary">USER SIGNUP</h2>
+          <h2 className="text-xl font-medium mb-6 text-secondary">
+            USER SIGNUP
+          </h2>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -93,7 +99,9 @@ const SignupPage = () => {
                 <div
                   onClick={() => setSelectedRole("user")}
                   className={`w-1/2 p-4 border rounded-lg cursor-pointer text-center ${
-                    selectedRole === "user" ? "bg-secondary text-white" : "bg-gray-200"
+                    selectedRole === "user"
+                      ? "bg-secondary text-white"
+                      : "bg-gray-200"
                   }`}
                 >
                   <h3>User</h3>
@@ -101,7 +109,9 @@ const SignupPage = () => {
                 <div
                   onClick={() => setSelectedRole("vendor")}
                   className={`w-1/2 p-4 border rounded-lg cursor-pointer text-center ${
-                    selectedRole === "vendor" ? "bg-secondary text-white" : "bg-gray-200"
+                    selectedRole === "vendor"
+                      ? "bg-secondary text-white"
+                      : "bg-gray-200"
                   }`}
                 >
                   <h3>Vendor</h3>
@@ -110,14 +120,18 @@ const SignupPage = () => {
             </div>
 
             <div className="mb-4">
-              {data?.success && <p className="text-green-500 font-bold">{data.success}</p>}
-              {data?.error && <p className="text-red-500 font-bold">{data.error}</p>}
+              {data?.success && (
+                <p className="text-green-500 font-bold">{data.success}</p>
+              )}
+              {data?.error && (
+                <p className="text-red-500 font-bold">{data.error}</p>
+              )}
             </div>
 
             <button
               disabled={isPending}
               type="submit"
-              className="w-full bg-secondary text-white py-3 px-4 hover:bg-secondary/50 rounded-md hover:bg-blue-700 transition duration-200"
+              className="primary-btn"
             >
               {isPending ? "Loading..." : "Signup"}
             </button>

@@ -97,7 +97,7 @@ const LoginPage = () => {
               type="submit"
               className={` ${
                 isPending ? "opacity-50" : "hover:bg-secondary/50"
-              } w-full bg-secondary text-white py-3 px-4  rounded-md transition duration-200`}
+              } primary-btn`}
             >
               {isPending ? (
                 <CircularProgress

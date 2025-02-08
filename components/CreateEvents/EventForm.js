@@ -39,13 +39,19 @@ const EventForm = ({
   const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
-    if (eventData.image) {
-      setFile({
-        url: eventData.image,
-        name: eventData.image,
-      });
+    if (eventData && Object.keys(eventData).length > 0) {
+      setTitle(eventData.title || "");
+      setDescription(eventData.description || "");
+      setDate(eventData.date ? eventData.date.split("T")[0] : "");
+      setTime(eventData.time || "");
+      setLocation(eventData.location || "");
+      setCategory(eventData.category || "");
+      setPrice(eventData.price || "");
+      setAvailableSeats(eventData.availableSeats || "");
+      setFile(eventData.image ? { url: eventData.image, name: eventData.image } : null);
     }
   }, [eventData]);
+  
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -119,7 +125,6 @@ const EventForm = ({
           onSubmit={handleSubmit}
           sx={{ display: "flex", flexDirection: "column", gap: 3 }}
         >
-          {/* Two-column layout for event title and description */}
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -147,7 +152,6 @@ const EventForm = ({
             </Grid>
           </Grid>
 
-          {/* Two-column layout for event date, time, and location */}
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -203,7 +207,6 @@ const EventForm = ({
             </Grid>
           </Grid>
 
-          {/* File input and image preview */}
           <Button
             variant="contained"
             component="label"
@@ -279,7 +282,7 @@ const EventForm = ({
                       },
                     }}
                   >
-                    ${value}
+                   Rs {value}
                   </Button>
                 </Grid>
               ))}
@@ -297,7 +300,6 @@ const EventForm = ({
             />
           </Box>
 
-          {/* Category selection */}
           <Select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -312,7 +314,6 @@ const EventForm = ({
             ))}
           </Select>
 
-          {/* Submit and Cancel buttons */}
           <Button
             type="submit"
             variant="contained"

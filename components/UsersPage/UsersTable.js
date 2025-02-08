@@ -26,6 +26,7 @@ import { Visibility, Delete, Edit } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { custom_styling } from "@/theme/mui-theme";
 import { CUSTOM_COLORS } from "@/theme/colors";
+import { getAllUsers } from "@/api/services/userService";
 
 const UsersTable = () => {
   const [users, setUsers] = useState([]);
@@ -44,11 +45,10 @@ const UsersTable = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/v1/user/all-users");
-      console.log("response: ", response);
-      const data = await response.json();
-      setUsers(data.users);
-      setFilteredUsers(data.users);
+      const allUsers = await getAllUsers();
+
+      setUsers(allUsers.users);
+      setFilteredUsers(allUsers.users);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
@@ -96,8 +96,8 @@ const UsersTable = () => {
   };
 
   const handleEditUser = (user) => {
-    setSelectedUser(user);
-    router.push(`/users/edit/${user.id}`);
+    // setSelectedUser(user);
+    router.push(`/dashboard/update-user/${user._id}`);
   };
 
   const deleteUser = async (userId) => {
@@ -110,7 +110,7 @@ const UsersTable = () => {
   };
 
   const handleCreateUser = () => {
-    router.push("/dashboard/create-user"); 
+    router.push("/dashboard/create-user");
   };
 
   if (loading) {
@@ -123,17 +123,14 @@ const UsersTable = () => {
 
   return (
     <div className="p-6">
-       <div className="flex justify-between items-center mb-4">
-         <Typography variant="h4" gutterBottom>
-           Users
-         </Typography>
-         <Button
-           onClick={handleCreateUser}
-           sx={custom_styling.primaryButton}
-         >
-           Create Users
-         </Button>
-       </div>
+      <div className="flex justify-between items-center mb-4">
+        <Typography variant="h4" gutterBottom>
+          Users
+        </Typography>
+        <Button onClick={handleCreateUser} sx={custom_styling.primaryButton}>
+          Create Users
+        </Button>
+      </div>
 
       <div className="mb-4">
         <TextField

@@ -22,11 +22,13 @@ import {
   TablePagination,
   TextField,
 } from "@mui/material";
-import { Visibility, Delete } from "@mui/icons-material";
+import { Visibility, Delete, Edit } from "@mui/icons-material";
 import Image from "next/image";
 import { CUSTOM_COLORS } from "@/theme/colors";
 import { useRouter } from "next/navigation";
 import { custom_styling } from "@/theme/mui-theme";
+import { deleteEvent, getUsersEvents } from "@/api/services/eventService";
+import { useSession } from "next-auth/react";
 
 const EventsTable = () => {
   const [data, setData] = useState([]);
@@ -37,12 +39,14 @@ const EventsTable = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const router = useRouter();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchEvents = async () => {
+      const token = session?.user.token;
       try {
-        const response = await fetch("/api/events");
-        const events = await response.json();
+        const events = await getUsersEvents(token);
+
         setData(events);
         setFilteredData(events);
       } catch (error) {
@@ -56,15 +60,21 @@ const EventsTable = () => {
   }, []);
 
   const handleDelete = async (id) => {
+    const token = session?.user.token;
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this event?"
     );
+
     if (confirmDelete) {
       try {
-        await fetch(`/api/events/${id}`, { method: "DELETE" }); 
-        setData((prevData) => prevData.filter((event) => event._id !== _id));
-        setFilteredData((prevData) => prevData.filter((event) => event._id !== _id));
-        alert("Event deleted successfully!");
+        const response = await deleteEvent(id, token);
+        if (response.success) {
+          setData((prevData) => prevData.filter((event) => event._id !== id));
+          setFilteredData((prevData) =>
+            prevData.filter((event) => event._id !== id)
+          );
+          alert("Event deleted successfully!");
+        }
       } catch (error) {
         console.error("Error deleting event:", error);
         alert("Failed to delete the event.");
@@ -103,6 +113,10 @@ const EventsTable = () => {
   function CreateEventNavigation() {
     router.push("/dashboard/create-event");
   }
+
+  const handleEdit = (event) => {
+    router.push(`/dashboard/update-event/${event._id}`);
+  };
 
   return (
     <div className="p-6">
@@ -164,7 +178,7 @@ const EventsTable = () => {
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((event) => (
                 <TableRow
-                  key={event.id}
+                  key={event._id}
                   sx={{
                     "&:hover": { backgroundColor: "#f9f9f9" },
                   }}
@@ -174,9 +188,17 @@ const EventsTable = () => {
                   <TableCell>{event.time}</TableCell>
                   <TableCell>{event.location}</TableCell>
                   <TableCell>{event.category}</TableCell>
-                  <TableCell>${event.price}</TableCell>
+                  <TableCell>Rs {event.price}</TableCell>
                   <TableCell>{event.availableSeats}</TableCell>
                   <TableCell>
+                    <Tooltip title="Edit Event">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleEdit(event)}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="View Details">
                       <IconButton
                         color="primary"
@@ -188,7 +210,7 @@ const EventsTable = () => {
                     <Tooltip title="Delete Event">
                       <IconButton
                         color="error"
-                        onClick={() => handleDelete(event.id)}
+                        onClick={() => handleDelete(event._id)}
                       >
                         <Delete />
                       </IconButton>
@@ -248,7 +270,7 @@ const EventsTable = () => {
               <strong>Category:</strong> {selectedEvent.category}
             </DialogContentText>
             <DialogContentText>
-              <strong>Price:</strong> ${selectedEvent.price}
+              <strong>Price:</strong> Rs {selectedEvent.price}
             </DialogContentText>
             <DialogContentText>
               <strong>Available Seats:</strong> {selectedEvent.availableSeats}
