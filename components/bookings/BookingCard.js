@@ -1,19 +1,23 @@
-import React, { useState } from 'react';
-import { FiCalendar, FiMapPin, FiClock, FiUsers } from 'react-icons/fi';
-import StatusBadge from './StatusBadge';
-import { updateBookingStatus, cancelBooking } from '@/api/services/bookingService';
-import { useSession } from 'next-auth/react';
+import {
+  updateBookingStatus,
+  cancelBooking,
+} from "@/api/services/bookingService";
+import { FiCalendar, FiMapPin, FiClock, FiUsers } from "react-icons/fi";
+import { useSession } from "next-auth/react";
+import StatusBadge from "./StatusBadge";
+import React, { useState } from "react";
 
 const BookingCard = ({ booking, onUpdate }) => {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   const handleUpdateStatus = async (status) => {
     const token = session?.user?.token;
     try {
       setLoading(true);
-      await updateBookingStatus(booking._id, {status}, token);
-      onUpdate(booking._id, status); 
+      await updateBookingStatus(booking._id, { status }, token);
+      onUpdate(booking._id, status);
     } catch (error) {
       console.error("Error updating booking:", error);
     } finally {
@@ -25,13 +29,13 @@ const BookingCard = ({ booking, onUpdate }) => {
     const token = session?.user?.token;
 
     try {
-      setLoading(true);
+      setIsCanceling(true);
       await cancelBooking(booking._id, token);
-      onUpdate(booking._id, null);  
+      onUpdate(booking._id, null);
     } catch (error) {
       console.error("Error canceling booking:", error);
     } finally {
-      setLoading(false);
+      setIsCanceling(false);
     }
   };
 
@@ -54,7 +58,9 @@ const BookingCard = ({ booking, onUpdate }) => {
               <div className="mt-4 space-y-2">
                 <div className="flex items-center text-gray-600">
                   <FiCalendar size={16} className="mr-2 text-[#DF1F5A]" />
-                  <span>{new Date(booking.eventId.date).toLocaleDateString()}</span>
+                  <span>
+                    {new Date(booking.eventId.date).toLocaleDateString()}
+                  </span>
                 </div>
                 <div className="flex items-center text-gray-600">
                   <FiClock size={16} className="mr-2 text-[#DF1F5A]" />
@@ -68,6 +74,10 @@ const BookingCard = ({ booking, onUpdate }) => {
                   <FiUsers size={16} className="mr-2 text-[#DF1F5A]" />
                   <span>{booking.seats} seats reserved</span>
                 </div>
+                <div className="flex items-center text-gray-600">
+                  <FiUsers size={16} className="mr-2 text-[#DF1F5A]" />
+                  <span>Booked by: {booking.userId.name} | {booking.userId.email} </span>
+                </div>
               </div>
             </div>
             <div className="flex flex-col items-start md:items-end gap-4">
@@ -78,24 +88,25 @@ const BookingCard = ({ booking, onUpdate }) => {
               <div className="text-sm text-gray-500">
                 Booked on {new Date(booking.createdAt).toLocaleDateString()}
               </div>
-              {booking.status === 'pending' && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleUpdateStatus("confirmed")}
-                    disabled={loading}
-                    className="px-4 py-2 bg-[#DF1F5A] text-white rounded-full hover:bg-[#DF1F5A]/90 transition-colors"
-                  >
-                    {loading ? 'loading...' : 'Confirm'}
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    disabled={loading}
-                    className="px-4 py-2 border-2 border-[#DF1F5A] text-[#DF1F5A] rounded-full hover:bg-[#DF1F5A]/10 transition-colors"
-                  >
-                    {loading ? 'loading...' : 'Cancel'}
-                  </button>
-                </div>
-              )}
+              {booking.status === "pending" &&
+                session?.user?.role === "vendor" && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleUpdateStatus("confirmed")}
+                      disabled={loading}
+                      className="px-4 py-2 bg-[#DF1F5A] text-white rounded-full hover:bg-[#DF1F5A]/90 transition-colors"
+                    >
+                      {loading ? "loading..." : "Confirm"}
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      disabled={loading}
+                      className="px-4 py-2 border-2 border-[#DF1F5A] text-[#DF1F5A] rounded-full hover:bg-[#DF1F5A]/10 transition-colors"
+                    >
+                      {isCanceling ? "loading..." : "Cancel"}
+                    </button>
+                  </div>
+                )}
             </div>
           </div>
         </div>

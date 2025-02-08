@@ -1,10 +1,10 @@
 import BookingList from '@/components/bookings/BookingList'
 import React from 'react'
 
-const MyBookingsPage = () => {
+const Bookings = () => {
   return (
     <BookingList/>
   )
 }
 
-export default MyBookingsPage
+export default Bookings

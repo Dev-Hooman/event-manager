@@ -63,7 +63,6 @@ const UserDropdown = () => {
               },
             }}
           >
-
             <Link href="/profile">
               <MenuItem
                 style={{
@@ -88,20 +87,21 @@ const UserDropdown = () => {
                 </MenuItem>
               </Link>
             )}
-            {
-              (session?.user?.role === "vendor" || session?.user?.role === "superadmin" && (
-                <Link href="/dashboard">
-                  <MenuItem
-                    style={{
-                      fontWeight: "500",
-                      fontSize: "14px",
-                      padding: "10px 10px",
-                    }}
-                  >
-                    Dashboard
-                  </MenuItem>
-                </Link>
-              ))}
+
+            {session?.user?.role === "vendor" ||
+            session?.user?.role === "superadmin" ? (
+              <Link href="/dashboard">
+                <MenuItem
+                  style={{
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    padding: "10px 10px",
+                  }}
+                >
+                  Dashboard
+                </MenuItem>
+              </Link>
+            ) : null}
             <MenuItem
               onClick={handleLogout}
               style={{
