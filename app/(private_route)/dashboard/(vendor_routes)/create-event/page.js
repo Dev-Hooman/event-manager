@@ -3,6 +3,7 @@ import { createEvent } from "@/api/services/eventService";
 import EventForm from "@/components/CreateEvents/EventForm";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const CreateEventPage = () => {
   const [loading, setLoading] = useState(false);
@@ -10,11 +11,7 @@ const CreateEventPage = () => {
 
   async function createEventApi(eventData) {
     setLoading(true);
-
     const token = session.user.token;
-
-    console.log("Token: ", token)
-
     try {
 
       const formData = new FormData();
@@ -33,10 +30,9 @@ const CreateEventPage = () => {
 
       await createEvent(formData, token);
 
-      alert("Event Created Successfully!");
+      toast.success("Event Created Successfully!");
     } catch (error) {
-      console.error("Error creating event:", error);
-      alert("Failed to create event. Please try again.");
+      toast.error(error.response.data.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }

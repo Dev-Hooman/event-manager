@@ -19,6 +19,7 @@ import {
 import { custom_styling } from "@/theme/mui-theme";
 import { CUSTOM_COLORS } from "@/theme/colors";
 import ImageDetailsModal from "./ImageDetailsModal";
+import { useRouter } from "next/navigation";
 
 const EventForm = ({
   eventData = {},
@@ -37,6 +38,7 @@ const EventForm = ({
   const [location, setLocation] = useState(eventData.location || "");
   const [availableSeats, setAvailableSeats] = useState(eventData.availableSeats || "");
   const [openModal, setOpenModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (eventData && Object.keys(eventData).length > 0) {

@@ -6,9 +6,11 @@ import {
 } from "@/api/services/eventService";
 import EventForm from "@/components/CreateEvents/EventForm";
 import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 
 const UpdateEvent = ({ params }) => {
   const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const { data: session } = useSession();
   const [data, setData] = useState([]);
   const resolvedParams = React.use(params);
@@ -16,7 +18,7 @@ const UpdateEvent = ({ params }) => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      setLoading(true);
+      setIsFetching(true);
       const token = session?.user.token;
       try {
         if (eventId) {
@@ -24,9 +26,9 @@ const UpdateEvent = ({ params }) => {
           setData(events);
         }
       } catch (error) {
-        console.error("Error fetching events:", error);
+        toast.error(error.response.data.message || "Something went wrong!");
       } finally {
-        setLoading(false);
+        setIsFetching(false);
       }
     };
 
@@ -54,10 +56,9 @@ const UpdateEvent = ({ params }) => {
 
       await updateEvent(eventId, formData, token);
 
-      alert("Event Created Successfully!");
+      toast.success("Event Updated Successfully!");
     } catch (error) {
-      console.error("Error creating event:", error);
-      alert("Failed to create event. Please try again.");
+      toast.error("Failed to create event. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -65,7 +66,7 @@ const UpdateEvent = ({ params }) => {
 
   return (
     <>
-      {loading ? (
+      {isFetching ? (
         <div className="flex justify-center items-center h-screen">
           <div>Loading...</div>
 

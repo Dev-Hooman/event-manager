@@ -26,13 +26,17 @@ import { Visibility, Delete, Edit } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { custom_styling } from "@/theme/mui-theme";
 import { CUSTOM_COLORS } from "@/theme/colors";
-import { getAllUsers } from "@/api/services/userService";
+import { getAllUsers, removeUser } from "@/api/services/userService";
+import Image from "next/image";
+import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 
 const UsersTable = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
+  const { data: session } = useSession();
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     userId: null,
@@ -82,14 +86,26 @@ const UsersTable = () => {
 
   const handleDeleteUser = async () => {
     const { userId } = confirmDialog;
+    const token = session?.user.token;
 
     try {
-      await deleteUser(userId);
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
-      alert("User deleted successfully!");
+      const resp = await removeUser(userId, token);
+
+      if (resp.success) {
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== userId)
+        );
+
+        setFilteredUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id != userId)
+        );
+        toast.success("User deleted successfully!");
+      } else {
+        toast.error("Failed to delete user. Please try again.");
+      }
     } catch (error) {
       console.error("Error deleting user:", error);
-      alert("Failed to delete user.");
+      toast.error("Failed to delete user. Please try again.");
     } finally {
       setConfirmDialog({ open: false, userId: null });
     }
@@ -98,15 +114,6 @@ const UsersTable = () => {
   const handleEditUser = (user) => {
     // setSelectedUser(user);
     router.push(`/dashboard/update-user/${user._id}`);
-  };
-
-  const deleteUser = async (userId) => {
-    const response = await fetch(`/api/users/${userId}`, {
-      method: "DELETE",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to delete user");
-    }
   };
 
   const handleCreateUser = () => {
@@ -199,7 +206,7 @@ const UsersTable = () => {
                         onClick={() =>
                           setConfirmDialog({
                             open: true,
-                            userId: user.id,
+                            userId: user._id,
                           })
                         }
                       >
@@ -231,9 +238,10 @@ const UsersTable = () => {
         >
           <DialogTitle>{selectedUser.name}</DialogTitle>
           <DialogContent className="flex flex-col justify-center items-center">
-            {selectedUser.photo ? (
+            {selectedUser.photoUrl ? (
               <Image
-                src={selectedUser.photo}
+                className="border border-secondary rounded-full"
+                src={selectedUser.photoUrl}
                 alt={selectedUser.name}
                 width={150}
                 height={150}
