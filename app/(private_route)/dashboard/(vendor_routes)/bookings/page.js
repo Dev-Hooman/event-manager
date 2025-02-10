@@ -1,3 +1,4 @@
+'use client'
 import BookingList from '@/components/bookings/BookingList'
 import React from 'react'
 
