@@ -38,6 +38,7 @@ const UpdateUser = ({ params }) => {
     const token = session?.user?.token;
     try {
       const formData = new FormData();
+      formData.append("userId", data._id);
       formData.append("name", userData.name);
       formData.append("email", userData.email);
       formData.append("phone", userData.phone);
