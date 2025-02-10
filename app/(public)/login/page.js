@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { CircularProgress } from "@mui/material";
 import { CUSTOM_COLORS } from "@/theme/colors";
+import Link from "next/link";
 
 const LoginPage = () => {
   const { data: session } = useSession();
