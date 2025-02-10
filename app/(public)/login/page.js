@@ -109,6 +109,12 @@ const LoginPage = () => {
               )}
             </button>
           </form>
+          <p className="font-medium text-secondary">
+            Didn't have an account?{" "}
+            <Link className="hover:underline transition-all" href="/signup">
+              Signup
+            </Link>
+          </p>
         </div>
       </div>
     </div>
